@@ -1,0 +1,23 @@
+# ==============================================================================
+# Sway Main Configuration - Void Linux (glibc)
+# ==============================================================================
+
+# Modular Includes
+include ~/.config/sway/theme
+include ~/.config/sway/sway_config.d/*
+
+# Visuals & Typography
+font pango:UbuntuMono Nerd Font, monospace 11
+default_border pixel 2
+default_floating_border pixel 2
+hide_edge_borders none
+
+# Gaps
+gaps inner 6
+gaps outer 4
+smart_gaps off
+smart_borders on
+
+# Cursor & Seat
+seat * xcursor_theme Adwaita 24
+seat * hide_cursor 60000
