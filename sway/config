@@ -7,16 +7,24 @@ include ~/.config/sway/theme
 include ~/.config/sway/sway_config.d/*
 
 # Visuals & Typography
-font pango:UbuntuMono Nerd Font, monospace 11
+font pango:JetBrainsMono Nerd Font, UbuntuMono Nerd Font, monospace 10.5
 default_border pixel 2
 default_floating_border pixel 2
 hide_edge_borders none
 
 # Gaps
-gaps inner 6
+gaps inner 8
 gaps outer 4
 smart_gaps off
 smart_borders on
+
+# SwayFX Visual Enhancements (Effective if using swayfx binary)
+# corner_radius 8
+# shadows enable
+# shadow_blur_radius 12
+# shadow_color #00000055
+# blur enable
+# blur_passes 2
 
 # Cursor & Seat
 seat * xcursor_theme Adwaita 24

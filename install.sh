@@ -248,7 +248,7 @@ deploy_dotfiles() {
     mkdir -p "$CONFIG_DIR" "$BIN_DIR" "$HOME/Pictures/Screenshots"
 
     # Carpetas a respaldar e instalar
-    DOT_DIRS=("sway" "alacritty" "fuzzel" "fastfetch" "nvim")
+    DOT_DIRS=("sway" "alacritty" "fuzzel" "fastfetch" "nvim" "mako")
 
     for dir in "${DOT_DIRS[@]}"; do
         if [ -d "$CONFIG_DIR/$dir" ]; then
@@ -279,8 +279,14 @@ deploy_dotfiles() {
     done
 
     # Copiar imágenes y fondos si existen
-    if [ -f "$SCRIPT_DIR/dark_theme.png" ] && [ ! -f "$HOME/Pictures/blurred_wallpaper_void.jpg" ]; then
-        cp "$SCRIPT_DIR/dark_theme.png" "$HOME/Pictures/blurred_wallpaper_void.jpg"
+    if [ -f "$SCRIPT_DIR/dark_theme.png" ]; then
+        cp "$SCRIPT_DIR/dark_theme.png" "$HOME/Pictures/dark_theme.png"
+        if [ ! -f "$HOME/Pictures/blurred_wallpaper_void.jpg" ]; then
+            cp "$SCRIPT_DIR/dark_theme.png" "$HOME/Pictures/blurred_wallpaper_void.jpg"
+        fi
+    fi
+    if [ -f "$SCRIPT_DIR/light_theme.png" ]; then
+        cp "$SCRIPT_DIR/light_theme.png" "$HOME/Pictures/light_theme.png"
     fi
 
     # Configuración inicial de tema

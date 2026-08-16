@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# switch - Dynamic Theme Switcher (Dark / Light) for Sway, Alacritty & Fuzzel
+# switch - Dynamic Theme Switcher (Dark / Light)
+# Supports Sway, Swaybar, Alacritty, Fuzzel, Mako, GTK & Wallpapers
 # ==============================================================================
 
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}"
@@ -8,6 +9,7 @@ CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}"
 SWAY_DIR="$CONFIG_DIR/sway"
 ALACRITTY_DIR="$CONFIG_DIR/alacritty"
 FUZZEL_DIR="$CONFIG_DIR/fuzzel"
+MAKO_DIR="$CONFIG_DIR/mako"
 
 LIGHT_THEME="$SWAY_DIR/theme.d/theme_light"
 DARK_THEME="$SWAY_DIR/theme.d/theme_dark"
@@ -18,50 +20,74 @@ ALACRITTY_DARK="$ALACRITTY_DIR/alacritty_dark.toml"
 FUZZEL_LIGHT="$FUZZEL_DIR/light.ini"
 FUZZEL_DARK="$FUZZEL_DIR/dark.ini"
 
+MAKO_LIGHT="$MAKO_DIR/mako_light"
+MAKO_DARK="$MAKO_DIR/mako_dark"
+
 BG_LIGHT="dfd5c7"
 BG_DARK="1e1e2e"
 
-mkdir -p "$SWAY_DIR" "$ALACRITTY_DIR" "$FUZZEL_DIR"
+mkdir -p "$SWAY_DIR" "$ALACRITTY_DIR" "$FUZZEL_DIR" "$MAKO_DIR"
 
 switch_theme() {
     local theme_name="$1"
     local sway_theme="$2"
     local alacritty_theme="$3"
     local fuzzel_theme="$4"
-    local bg_color="$5"
+    local mako_theme="$5"
+    local bg_color="$6"
+    local gtk_scheme="$7"
+    local wp_preferred="$8"
 
-    # Link Sway Theme
+    # 1. Link Sway Theme
     if [ -f "$sway_theme" ]; then
         ln -sf "$sway_theme" "$SWAY_DIR/theme"
     fi
 
-    # Link Alacritty Theme
+    # 2. Link Alacritty Theme
     if [ -f "$alacritty_theme" ]; then
         ln -sf "$alacritty_theme" "$ALACRITTY_DIR/alacritty.toml"
     fi
 
-    # Link Fuzzel Theme
+    # 3. Link Fuzzel Theme
     if [ -f "$fuzzel_theme" ]; then
         ln -sf "$fuzzel_theme" "$FUZZEL_DIR/fuzzel.ini"
     fi
 
-    # Set background color or image
+    # 4. Link Mako Theme & Reload
+    if [ -f "$mako_theme" ]; then
+        ln -sf "$mako_theme" "$MAKO_DIR/config"
+        if command -v makoctl >/dev/null 2>&1; then
+            makoctl reload 2>/dev/null || true
+        fi
+    fi
+
+    # 5. GTK Color Scheme (Dark / Light)
+    if command -v gsettings >/dev/null 2>&1; then
+        gsettings set org.gnome.desktop.interface color-scheme "$gtk_scheme" 2>/dev/null || true
+    fi
+
+    # 6. Set background image or color
     if command -v swaybg >/dev/null 2>&1; then
         pkill swaybg 2>/dev/null || true
-        if [ -f "$HOME/Pictures/wallpaper.png" ]; then
+        if [ -f "$wp_preferred" ]; then
+            swaybg -i "$wp_preferred" -m fill 2>/dev/null &
+        elif [ -f "$HOME/Pictures/wallpaper.png" ]; then
             swaybg -i "$HOME/Pictures/wallpaper.png" -m fill 2>/dev/null &
+        elif [ -f "$HOME/Pictures/blurred_wallpaper_void.jpg" ]; then
+            swaybg -i "$HOME/Pictures/blurred_wallpaper_void.jpg" -m fill 2>/dev/null &
         else
             swaybg -c "$bg_color" 2>/dev/null &
         fi
     fi
 
-    # Reload Sway if running
+    # 7. Reload Sway if running
     if [ -n "$SWAYSOCK" ] && command -v swaymsg >/dev/null 2>&1; then
         swaymsg reload >/dev/null 2>&1
     fi
 
+    # 8. Notification
     if command -v notify-send >/dev/null 2>&1 && [ -n "$WAYLAND_DISPLAY" ]; then
-        notify-send -a "Theme Switcher" "Tema cambiado" "Modo $theme_name aplicado correctamente." -t 2000 2>/dev/null || true
+        notify-send -a "Theme Switcher" -i preferences-desktop-theme "Tema cambiado" "Modo $theme_name aplicado correctamente." -t 2000 2>/dev/null || true
     fi
 }
 
@@ -73,26 +99,29 @@ if [ -L "$SWAY_DIR/theme" ]; then
     fi
 fi
 
+WP_LIGHT="$HOME/Pictures/light_theme.png"
+WP_DARK="$HOME/Pictures/dark_theme.png"
+
 case "$1" in
     light)
-        switch_theme "Claro" "$LIGHT_THEME" "$ALACRITTY_LIGHT" "$FUZZEL_LIGHT" "$BG_LIGHT"
+        switch_theme "Claro" "$LIGHT_THEME" "$ALACRITTY_LIGHT" "$FUZZEL_LIGHT" "$MAKO_LIGHT" "$BG_LIGHT" "prefer-light" "$WP_LIGHT"
         ;;
     dark)
-        switch_theme "Oscuro" "$DARK_THEME" "$ALACRITTY_DARK" "$FUZZEL_DARK" "$BG_DARK"
+        switch_theme "Oscuro" "$DARK_THEME" "$ALACRITTY_DARK" "$FUZZEL_DARK" "$MAKO_DARK" "$BG_DARK" "prefer-dark" "$WP_DARK"
         ;;
     toggle)
         if [ "$current_theme" = "dark" ]; then
-            switch_theme "Claro" "$LIGHT_THEME" "$ALACRITTY_LIGHT" "$FUZZEL_LIGHT" "$BG_LIGHT"
+            switch_theme "Claro" "$LIGHT_THEME" "$ALACRITTY_LIGHT" "$FUZZEL_LIGHT" "$MAKO_LIGHT" "$BG_LIGHT" "prefer-light" "$WP_LIGHT"
         else
-            switch_theme "Oscuro" "$DARK_THEME" "$ALACRITTY_DARK" "$FUZZEL_DARK" "$BG_DARK"
+            switch_theme "Oscuro" "$DARK_THEME" "$ALACRITTY_DARK" "$FUZZEL_DARK" "$MAKO_DARK" "$BG_DARK" "prefer-dark" "$WP_DARK"
         fi
         ;;
     auto|*)
         CURRENT_HOUR=$(date +%H)
         if [ "$CURRENT_HOUR" -ge 7 ] && [ "$CURRENT_HOUR" -lt 19 ]; then
-            switch_theme "Claro" "$LIGHT_THEME" "$ALACRITTY_LIGHT" "$FUZZEL_LIGHT" "$BG_LIGHT"
+            switch_theme "Claro" "$LIGHT_THEME" "$ALACRITTY_LIGHT" "$FUZZEL_LIGHT" "$MAKO_LIGHT" "$BG_LIGHT" "prefer-light" "$WP_LIGHT"
         else
-            switch_theme "Oscuro" "$DARK_THEME" "$ALACRITTY_DARK" "$FUZZEL_DARK" "$BG_DARK"
+            switch_theme "Oscuro" "$DARK_THEME" "$ALACRITTY_DARK" "$FUZZEL_DARK" "$MAKO_DARK" "$BG_DARK" "prefer-dark" "$WP_DARK"
         fi
         ;;
 esac

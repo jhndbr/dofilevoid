@@ -1,4 +1,5 @@
-#~/.config/sway/theme.d/theme_dark
+# ~/.config/sway/theme.d/theme_dark
+# Catppuccin Mocha Palette
 
 # Colors
 set $background #1e1e2e
@@ -6,24 +7,35 @@ set $foreground #cdd6f4
 set $accent     #89b4fa
 set $urgent     #f38ba8
 set $inactive   #313244
+set $border_act #89b4fa
+set $border_in  #313244
 
-# Client Colors
-client.focused          $accent $accent $accent $foreground $foreground
-client.focused_inactive $inactive $inactive $inactive $background $background
-client.unfocused        $inactive $inactive $inactive $background $background
-client.urgent           $urgent $urgent $urgent $urgent $urgent
+# Client Window Borders
+# class                 border      background  text        indicator   child_border
+client.focused          $border_act $background $foreground $accent     $border_act
+client.focused_inactive $border_in  $background $foreground $border_in  $border_in
+client.unfocused        $border_in  $background $foreground $border_in  $border_in
+client.urgent           $urgent     $urgent     $background $urgent     $urgent
 
-# Bar Colors
+# Swaybar Configuration
 bar {
     position top
-    status_command while $HOME/.local/bin/swaybar.sh; do sleep 1; done
+    status_command $HOME/.local/bin/swaybar.sh
+    font pango:JetBrainsMono Nerd Font, UbuntuMono Nerd Font, monospace 10
+    height 28
+    status_padding 2
+    status_edge_padding 8
+    
     colors {
         background $background
         statusline $foreground
-        focused_workspace  $accent $accent $foreground
+        separator  #45475a
+        
+        # Border, Background, Text
+        focused_workspace  $accent $accent $background
         active_workspace   $background $background $accent
         inactive_workspace $background $background $foreground
-        urgent_workspace   $background $background $urgent
+        urgent_workspace   $urgent $urgent $background
         binding_mode       #a6e3a1 #a6e3a1 $background
     }
 }
